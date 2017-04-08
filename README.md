@@ -1,4 +1,4 @@
-# READNE
+# README
 
 This repo is set for 2017 in-lab machine learning curriculum, AVC2 lab.
 
