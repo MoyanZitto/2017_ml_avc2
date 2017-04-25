@@ -1,108 +1,94 @@
 # The result of the code
 
-cross validate 0:accuracy 0.775000
+The accuracy of the dataset0 is 77.0%
+The accuracy of the dataset1 is 79.0%
+The accuracy of the dataset2 is 84.0%
+The accuracy of the dataset3 is 80.5%
+The accuracy of the dataset4 is 85.0%
+The accuracy of the whole dataset is 81.1%
 
-cross validate 1:accuracy 0.770000
-
-cross validate 2:accuracy 0.825000
-
-cross validate 3:accuracy 0.805000
-
-cross validate 4:accuracy 0.835000
-
-5-fold average accuracy: 0.802000
-
+**结果的正确率不是特别高，可能是因为三个特征之间量级不一样，可以考虑特征归一化，再利用kNND分类**
 
 ## The code of kNN
 
 ``` python
-# Attention
-# Not have much time to learn python
-# just look through and copy other's code 
-# will try to write the code on my own next time
-
+# mywork
 import numpy as np
 
-# read the data and type transformation
-f=open('dataset.txt')
-lines=f.readlines()
+# 读取数据
+fn = 'dataset.txt'
+fr = open(fn)
 
-data=[]
-label=[]
+lines = fr.readlines()
+datalen = len(lines)
 
-
-N=len(lines)
-for i in range(N):
-    a=lines[i].split()
-    b=[float(item) for item in a[:3]]
-    data.append(b)
-    label.append(a[-1])
-
-data=np.array(data)
-label=np.array(label)
-
-
-# choose the top nearest k  and count them
-def knn(X1,y1,x2,k):
-    n=len(X1)
-    dist=[]
-    for i in range(n):
-        d=np.sqrt(np.sum((x2-X1[i])**2))
-        dist.append(d)
-    
-    #得到距离最近的k个label
-    k_index=np.argsort(dist)
-    k_label=y1[k_index[:k]]
-    
-    #统计出现次数
-    m=len(k_label)
-    k_num=[]
-    for j in range(m):
-        k_num.append(list(k_label).count(k_label[j]))
-    
-    label=k_label[np.argmax(k_num)]
-    
-    return label
-    
-# 5-fold validation
-k_fold=5
-
-# split the data into five groups on average
-data5=np.array_split(data,k_fold)
-label5=np.array_split(label,k_fold)
-accuracy=[]
-
-# print data5
-for i in range(k_fold):
-    test_data=data5[i]
-    test_label=label5[i]
+data = []
+label = []
+for i in range(datalen):
+	# 去掉头和尾的空格并分割字符
+	line = lines[i].strip()	
+	item = line.split('\t')
+	# data表示特征x
+	b = [float(temp) for temp in item[:3]]
+	data.append((b))
+	# label表示特征y
+	label.append(item[-1])
 	
-    data4=[data5[j] for j in range(k_fold) if j!=i]
-    label4=[label5[j] for j in range(k_fold) if j!=i]
-	
-    train_data=data4[0]
-    train_label=label4[0]
-	
-    # print train_label.shape
-    for m in range(1,4):
-        train_data=np.vstack((train_data,data4[m]))
-        train_label=np.hstack((train_label,label4[m]))
-    # print train_data.shape
-    # print train_label.shape
-       
-    y=[]
-    m=len(test_data)
+fr.close()
 
-    for k in range(m):
-        #使用的是4近邻
-        out=knn(train_data,train_label,test_data[k],8)
-        #print(y)
-        #print(test_label[11])
-        y.append(out)
-		
-    accuracy.append((np.sum(y==test_label))/m) 
-	
-    print('cross validate %d:accuracy %f'%(i,accuracy[i]))
+# 转换成array
+data = np.array(data)
+label = np.array(label)
 
-print('5-fold average accuracy: %f'%np.mean(accuracy))  
+# 给定训练数据和测试数据，根据kNN进行分类
+def kNN(traindata,trainlabel,testdata,k):
+	
+	datalen = len(traindata) 
+	dist = []
+	for i in range(datalen):
+		temp = np.sqrt(np.sum((testdata-traindata[i])**2))  
+		dist.append(temp)
+	
+	k_index = np.argsort(dist)
+	k_label = trainlabel[k_index[:k]]
+	k_label_num = []
+	for i in range(k):
+		k_label_num.append(list(k_label).count(k_label[i]))
+	
+	return k_label[np.argmax(k_label_num)]
+
+k_fold = 5
+# 将数据集分成五份
+data_k_fold = np.array_split(data,k_fold)
+label_k_fold = np.array_split(label,k_fold)
+
+
+testsetlen = len(label_k_fold[0]) 
+# 将每一类的数据作为测试集，将其他数据作为训练集，得到结果
+
+accuracy = []
+
+for i in range(k_fold):	
+
+	# 去除其他类的list，list生成器
+	traindata = [data_k_fold[j] for j in range(k_fold) if j!= i]
+	trainlabel = [label_k_fold[j] for j in range(k_fold) if j!= i]
+
+	# 合并成一个list 	
+	traindata = np.vstack(traindata)
+	trainlabel = np.hstack(trainlabel)
+	
+	correct = 0;
+	for j in range(testsetlen):
+		testdata = data_k_fold[i][j]
+		output = kNN(traindata,trainlabel,testdata,15)
+		if output == label_k_fold[i][j] :
+			correct = correct + 1
+	
+	accuracy.append(correct * 100 / testsetlen)
+	
+	print("The accuracy of the dataset%s is %s%%" %(i,accuracy[i]))
+	
+
+print("The accuracy of the whole dataset is %s%%" %np.mean(accuracy))
 ```
