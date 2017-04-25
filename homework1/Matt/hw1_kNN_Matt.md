@@ -7,7 +7,7 @@ The accuracy of the dataset3 is 80.5%
 The accuracy of the dataset4 is 85.0%
 The accuracy of the whole dataset is 81.1%
 
-**结果的正确率不是特别高，可能是因为三个特征之间量级不一样，可以考虑特征归一化，再利用kNND分类**
+**结果的正确率不是特别高，可能是因为三个特征之间量级不一样，可以考虑特征归一化，再利用kNN分类**
 
 ## The code of kNN
 
